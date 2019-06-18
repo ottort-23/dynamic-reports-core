@@ -1,14 +1,12 @@
 # reports-core-api
 
-This project is an api made that receives an object and returns as a response a file of type report.
+This project is an SpringBoot api made that receives an object and returns as a response a file of type report.
 
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
-
-
 
 ```
 Java 8 version
@@ -124,11 +122,11 @@ Example object
 
 Version:
 ```
-Version 1.0.0
+Version 1.0.1
 ```
 
 ## Authors
-* Members
+* Edwin Ottoniel Rodriguez Taylor 
 
 
 
