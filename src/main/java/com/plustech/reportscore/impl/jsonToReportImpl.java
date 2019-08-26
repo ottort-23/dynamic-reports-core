@@ -45,12 +45,14 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import ar.com.fdvs.dj.domain.AutoText;
 import ar.com.fdvs.dj.domain.DJCalculation;
 import ar.com.fdvs.dj.domain.DynamicReport;
+import ar.com.fdvs.dj.domain.ImageBanner;
 import ar.com.fdvs.dj.domain.Style;
 import ar.com.fdvs.dj.domain.builders.GroupBuilder;
 import ar.com.fdvs.dj.domain.constants.Border;
 import ar.com.fdvs.dj.domain.constants.Font;
 import ar.com.fdvs.dj.domain.constants.GroupLayout;
 import ar.com.fdvs.dj.domain.constants.HorizontalAlign;
+import ar.com.fdvs.dj.domain.constants.Stretching;
 import ar.com.fdvs.dj.domain.constants.Transparency;
 import ar.com.fdvs.dj.domain.constants.VerticalAlign;
 import ar.com.fdvs.dj.domain.entities.DJGroup;
@@ -70,7 +72,7 @@ public class jsonToReportImpl implements JsonToReportService {
     @Override
     //@SuppressWarnings("empty-statement")
     public HttpServletResponse convertJsonToPdf(String json, HttpServletResponse response) throws Exception {
-       // HttpServletResponse response = null;
+        // HttpServletResponse response = null;
         JSONObject jsonObj = new JSONObject(json);
 
         String jsonData = (jsonObj.isNull("data") ? "{}" : jsonObj.get("data").toString());
@@ -120,7 +122,7 @@ public class jsonToReportImpl implements JsonToReportService {
                             drb.addColumn(((JSONObject) o2).getString("description"), "Field_" + Integer.toString(countColumn), String.class.getName(), size, cellStyle);
                         } catch (ColumnBuilderException | ClassNotFoundException ex) {
                             Logger.getLogger(jsonToReportImpl.class.getName()).log(Level.SEVERE, null, ex);
-                            throw new RuntimeException( "Error: Filling columns - fields data error: ", ex);
+                            throw new RuntimeException("Error: Filling columns - fields data error: ", ex);
                         }
                     }
                 }
@@ -179,7 +181,7 @@ public class jsonToReportImpl implements JsonToReportService {
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(jsonToReportImpl.class.getName()).log(Level.SEVERE, null, ex);
             throw new RuntimeException("Error: jsonDataStream - byte array tranformation data error: ", ex);
-            
+
         }
         //Create json datasource from json stream
         JsonDataSource ds = null;
@@ -188,7 +190,7 @@ public class jsonToReportImpl implements JsonToReportService {
         } catch (JRException ex) {
             Logger.getLogger(jsonToReportImpl.class.getName()).log(Level.SEVERE, null, ex);
             throw new RuntimeException("Error: JsonDataSource - filling data source error: ", ex);
-          
+
         }
         //Finally print the report report
         JasperPrint jp = null;
@@ -196,11 +198,10 @@ public class jsonToReportImpl implements JsonToReportService {
             jp = DynamicJasperHelper.generateJasperPrint(dr, new ClassicLayoutManager(), ds);
         } catch (JRException ex) {
             Logger.getLogger(jsonToReportImpl.class.getName()).log(Level.SEVERE, null, ex);
-           throw new RuntimeException("Error: JasperPrint - generate jasper print error: ", ex);
-           
+            throw new RuntimeException("Error: JasperPrint - generate jasper print error: ", ex);
+
         }
 
-        
         //JasperPrint jps = jp;
         //Response configuration
         try {
@@ -217,23 +218,22 @@ public class jsonToReportImpl implements JsonToReportService {
                 response.getOutputStream().flush();
                 response.getOutputStream().close();
             }
-           
+
         } catch (JRException ex) {
-             throw new RuntimeException("Error: JasperExportManager - export report to pdf error: ", ex);
-          
+            throw new RuntimeException("Error: JasperExportManager - export report to pdf error: ", ex);
+
         } catch (IOException ex) {
             Logger.getLogger(jsonToReportImpl.class.getName()).log(Level.SEVERE, null, ex);
             throw new RuntimeException("Error: JasperExportManager - export report to pdf error: ", ex);
-            
+
         }
-        
 
         return response;
 
     }
 
     @Override
-    public HttpServletResponse convertJsonToXls(String json, HttpServletResponse response)  throws IOException{
+    public HttpServletResponse convertJsonToXls(String json, HttpServletResponse response) throws IOException {
 
         JSONObject jsonObj = new JSONObject(json);
         JSONArray jsonData = jsonObj.getJSONArray("data");
@@ -356,10 +356,9 @@ public class jsonToReportImpl implements JsonToReportService {
                 rowNumber++;
             }
         }
-        
-       // HttpServletResponse response = null;
-        
-         // Setup the output 
+
+        // HttpServletResponse response = null;
+        // Setup the output 
         String contentType = "application/vnd.ms-excel";
         response.setContentType(contentType);
         response.setHeader("Content-Disposition", "attachment; filename=response.xls");
@@ -367,7 +366,6 @@ public class jsonToReportImpl implements JsonToReportService {
         response.setHeader("Cache-Control", "private");
         response.setHeader("Pragma", "no-store");
         workbook.write(response.getOutputStream());
-        
 
         return response;
 
@@ -404,18 +402,38 @@ public class jsonToReportImpl implements JsonToReportService {
         }
         return list;
     }
+    
 
     @Override
     public JasperPrint convertGroupJsonToPdf(String json) {
 
         JSONObject jsonObj = new JSONObject(json);
+        JSONObject jsonObjClient = new JSONObject(jsonObj.get("client").toString());
         String jsonData = jsonObj.get("data").toString();
         String titulo = jsonObj.get("title").toString();
+        String date = jsonObj.get("date").toString();
         String pageSize = jsonObj.get("pageSize").toString();
         String pageOrientation = jsonObj.get("pageOrientation").toString();
         String tableStriped = jsonObj.get("tableStriped").toString();
+        Integer groupSumColumnId = Integer.valueOf(jsonObj.get("groupSumColumnId").toString());
         JSONArray columns = jsonObj.getJSONArray("columns");
         JSONArray data = jsonObj.getJSONArray("data");
+
+        //Client Data
+        String clientName = jsonObjClient.get("name").toString();
+        String clientDpi = jsonObjClient.get("dpi").toString();
+        String clientNit = jsonObjClient.get("nit").toString();
+
+        //Cell styling
+        Style cellStyle = new Style("cellParent");
+        cellStyle.setBackgroundColor(Color.WHITE);
+        cellStyle.setTransparency(Transparency.OPAQUE);
+//        cellStyle.setBorderTop(Border.THIN());
+//        cellStyle.setBorderBottom(Border.THIN());
+//        cellStyle.setBorderLeft(Border.THIN());
+//        cellStyle.setBorderRight(Border.THIN());
+        cellStyle.setHorizontalAlign(HorizontalAlign.LEFT);
+        cellStyle.setVerticalAlign(VerticalAlign.TOP);
 
         FastReportBuilder drb = new FastReportBuilder();
 
@@ -423,17 +441,6 @@ public class jsonToReportImpl implements JsonToReportService {
         parameters.put("titulo", titulo);
 
         int countColumn = 1;
-
-        //Cell styling
-        Style cellStyle = new Style("cellParent");
-        cellStyle.setBackgroundColor(Color.WHITE);
-        cellStyle.setTransparency(Transparency.OPAQUE);
-        cellStyle.setBorderTop(Border.THIN());
-        cellStyle.setBorderBottom(Border.THIN());
-        cellStyle.setBorderLeft(Border.THIN());
-        cellStyle.setBorderRight(Border.THIN());
-        cellStyle.setHorizontalAlign(HorizontalAlign.LEFT);
-        cellStyle.setVerticalAlign(VerticalAlign.TOP);
 
         //Filling columns
         for (Object o : columns) {
@@ -451,13 +458,23 @@ public class jsonToReportImpl implements JsonToReportService {
                     if (size < 5) {
                         size = 10;
                     };
+
                     if (((JSONObject) o2).getString("columnName").equals(fieldNumber)) {
                         try {
 
-                            if (((JSONObject) o2).getString("columnName").equals("Field_3")) {
-                                drb.addColumn(((JSONObject) o2).getString("description"), "Field_" + Integer.toString(countColumn), Integer.class.getName(), 80, cellStyle);
+                            if (((JSONObject) o2).getString("columnName").equals("Field_" + groupSumColumnId.toString())) {
+                                cellStyle.setPattern("Q 0.00");
+                                cellStyle.setHorizontalAlign(HorizontalAlign.RIGHT);
+                                drb.addColumn(((JSONObject) o2).getString("description"), "Field_" + Integer.toString(countColumn), Double.class.getName(), 80, cellStyle);
+
                             } else {
-                                drb.addColumn(((JSONObject) o2).getString("description"), "Field_" + Integer.toString(countColumn), String.class.getName(), 80, cellStyle);
+                                if (((JSONObject) o2).getString("columnName").equals("Field_0")) {
+                                    cellStyle.setHorizontalAlign(HorizontalAlign.LEFT);
+                                    drb.addColumn(((JSONObject) o2).getString("description"), "Field_" + Integer.toString(countColumn), String.class.getName(), 80, cellStyle);
+                                } else {
+                                    cellStyle.setHorizontalAlign(HorizontalAlign.CENTER);
+                                    drb.addColumn(((JSONObject) o2).getString("description"), "Field_" + Integer.toString(countColumn), String.class.getName(), 80, cellStyle);
+                                }
                             }
 
                         } catch (ColumnBuilderException | ClassNotFoundException ex) {
@@ -488,8 +505,27 @@ public class jsonToReportImpl implements JsonToReportService {
 
         //Title styling
         Style titleStyleParent = new Style("titleParent");
-        titleStyleParent.setFont(Font.ARIAL_BIG);
+        titleStyleParent.setFont(Font.ARIAL_SMALL_BOLD);
         titleStyleParent.setHorizontalAlign(HorizontalAlign.RIGHT);
+        titleStyleParent.setPattern("Q 0.00");
+
+        //Title TOTAL
+        Style totalStyle = new Style("totalParent");
+        totalStyle.setFont(Font.ARIAL_BIG);
+        totalStyle.setHorizontalAlign(HorizontalAlign.RIGHT);
+        totalStyle.setPattern("Q 0.00");
+
+        //Group Title Style
+        Style groupTotalStyle = new Style("group_titleParent");
+        groupTotalStyle.setFont(Font.ARIAL_MEDIUM_BOLD);
+        groupTotalStyle.setHorizontalAlign(HorizontalAlign.RIGHT);
+        groupTotalStyle.setPattern("Q 0.00");
+        
+        //Group Title Style
+        Style groupHeaderStyle = new Style("grouptitleParent");
+        groupHeaderStyle.setFont(Font.ARIAL_MEDIUM_BOLD);
+        groupHeaderStyle.setHorizontalAlign(HorizontalAlign.LEFT);
+
 
         //Page size configuration
         ReportPage page = Constants.getPageDimensions(pageSize, pageOrientation);
@@ -502,12 +538,14 @@ public class jsonToReportImpl implements JsonToReportService {
         headerVariables.setVerticalAlign(VerticalAlign.MIDDLE);
 
         String a = drb.getColumn(0).toString();
+        drb.getColumn(0).setStyle(groupHeaderStyle);
         GroupBuilder gb1 = new GroupBuilder();
-        gb1.setCriteriaColumn((PropertyColumn) drb.getColumn(0))
-                .addFooterVariable(drb.getColumn(2), DJCalculation.SUM, titleStyleParent) // tell the group place a variable footer of the column "columnAmount" with the SUM of allvalues of the columnAmount in this group.				.addHeaderVariable(columnaQuantity,DJCalculation.SUM,headerVariables) // idem for the columnaQuantity column
+        gb1
+                .setCriteriaColumn((PropertyColumn) drb.getColumn(0))
+                .addFooterVariable(drb.getColumn(groupSumColumnId - 1), DJCalculation.SUM, groupTotalStyle) // tell the group place a variable footer of the column "columnAmount" with the SUM of allvalues of the columnAmount in this group.				.addHeaderVariable(columnaQuantity,DJCalculation.SUM,headerVariables) // idem for the columnaQuantity column
                 // .addFooterVariable(drb.getColumn(0), DJCalculation.SUM, headerVariables) // tell the group place a variable footer of the column "columnAmount" with the SUM of allvalues of the columnAmount in this group.
                 // .addFooterVariable(drb.getColumn(0), DJCalculation.SUM, headerVariables) // idem for the columnaQuantity column
-                .setGroupLayout(GroupLayout.DEFAULT_WITH_HEADER); // tells the group how to be shown, there are manyposibilities, see the GroupLayout for more.
+                .setGroupLayout(GroupLayout.VALUE_IN_HEADER_WITH_HEADERS); // tells the group how to be shown, there are manyposibilities, see the GroupLayout for more.
         // .build();
 
         DJGroup g1 = gb1.build();
@@ -519,30 +557,45 @@ public class jsonToReportImpl implements JsonToReportService {
 
         Style headerStyle = new Style();
         headerStyle.setFont(Font.ARIAL_MEDIUM_BOLD);
-        headerStyle.setBorderBottom(Border.PEN_1_POINT());
-        headerStyle.setBackgroundColor(Color.gray);
+        //headerStyle.setBorderBottom(Border.PEN_1_POINT());
+        headerStyle.setBackgroundColor(Color.darkGray);
         headerStyle.setTextColor(Color.white);
         headerStyle.setHorizontalAlign(HorizontalAlign.CENTER);
         headerStyle.setVerticalAlign(VerticalAlign.MIDDLE);
         headerStyle.setTransparency(Transparency.OPAQUE);
+        
 
         Style titleStyle = new Style();
         titleStyle.setFont(new Font(18, Font._FONT_VERDANA, true));
+        titleStyle.setHorizontalAlign(HorizontalAlign.RIGHT);
+        titleStyle.setTextColor(Color.RED);
+
+        Style subtitleStyle = new Style("subtitle_style");
+        subtitleStyle.setStretchWithOverflow(true);
+        subtitleStyle.setStreching(Stretching.NO_STRETCH);
+        subtitleStyle.setVerticalAlign(VerticalAlign.TOP);
 
         DynamicReport dr = drb
                 //.addGroups(2)
                 .setTitle(titulo)
-                .setSubtitle("Este reporte fue genereado el: " + new Date().toGMTString())
-                .setDetailHeight(new Integer(15)).setLeftMargin(margin)
-                .setRightMargin(margin).setTopMargin(margin).setBottomMargin(margin)
+                .setSubtitle(
+                          "Cliente:   " + clientName + "\\n"
+                        + "DPI:       " + clientDpi + " Nit:     " + clientNit + "\\n"
+                        + "Fecha:     " + date + "\\n"
+                )
+                //.setDetailHeight(new Integer(15)).setLeftMargin(margin)
+                //.setRightMargin(margin).setTopMargin(margin).setBottomMargin(margin)
+                .setUseFullPageWidth(true)
                 .setPrintBackgroundOnOddRows(false)
-                .setGrandTotalLegend("Grand Total")
-                .setGrandTotalLegendStyle(headerVariables)
                 //.setDefaultStyles(titleStyleParent, null, headerStyleParent, cellStyleParent)
-                .setDefaultStyles(titleStyle, null, headerStyle, detailStyle)
+                .setDefaultStyles(titleStyle, subtitleStyle, headerStyle, detailStyle)
                 .setPrintColumnNames(false)
-                .setReportName("ExportPDF")
+                .setReportName("GroupReport_" + titulo)
                 .addGroup(g1)
+                .addGlobalFooterVariable(drb.getColumn(groupSumColumnId - 1), DJCalculation.SUM, totalStyle)
+                .setGrandTotalLegend("Total")
+                .setGrandTotalLegendStyle(headerVariables)
+                .addImageBanner("C:/Users/ottor/Documents/Repositorios TechPlus/images/rocasa-logo.png", 200, 60, ImageBanner.ALIGN_LEFT)
                 .build();
 
         //drb.addGroup(g1);

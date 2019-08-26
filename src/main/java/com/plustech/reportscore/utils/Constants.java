@@ -5,7 +5,7 @@
  */
 package com.plustech.reportscore.utils;
 
-
+import ar.com.fdvs.dj.domain.constants.HorizontalAlign;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,11 +18,40 @@ public class Constants {
     public static final String MONGO_SERVER_URI = "mongodb://EntifixDB:Deventifix@cluster0-shard-00-00-ymgiz.gcp.mongodb.net:27017,cluster0-shard-00-01-ymgiz.gcp.mongodb.net:27017,cluster0-shard-00-02-ymgiz.gcp.mongodb.net:27017/auth-core-db?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true";
     public static final String DATA_BASE = "clinical-scheduling-db";
 
+    public static final Class getClassType(String classType) {
+        String clas = classType.toUpperCase();
+        switch (clas) {
+            case "STRING":
+                return String.class;
+            case "DOUBLE":
+                return Double.class;
+            case "INTEGER":
+                return Integer.class;
+        }
+        return String.class;
+    }
+
+    public static final HorizontalAlign getReportCellOrientation(String align) {
+        String cellAlign = align.toUpperCase();
+        switch (cellAlign) {
+            case "LEFT":
+                return HorizontalAlign.LEFT;
+            case "RIGHT":
+                return HorizontalAlign.RIGHT;
+            case "CENTER":
+                return HorizontalAlign.CENTER;
+            case "JUSTIFY":
+                return HorizontalAlign.JUSTIFY;
+        }
+
+        return HorizontalAlign.CENTER;
+    }
+
     public static final ReportPage getPageDimensions(String pageSize, String pageOrientation) {
         ReportPage page = new ReportPage();
         String sizeText = pageSize.toUpperCase();
         String orientationText = pageOrientation.toUpperCase();
-        
+
         switch (sizeText) {
             case "LETTER":
                 page.setHeight(792);
